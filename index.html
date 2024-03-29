@@ -92,13 +92,14 @@
         });
     };
 
-    const safeCode = (string) => {
-      return string
+    // const safeCode = (string) => { используем прототипы, чтобы сразу смочь преобразовать строку из trim()
+    String.prototype.safeCode = function () {
+      return this
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;");
-    };
+    }; 
 
     const formatDate = (date) => {
       const getNum = (value) => value < 10 ? "0" + value : value;
@@ -188,7 +189,13 @@
       fetch("https://wedev-api.sky.pro/api/v1/anka-anny/comments", {
         method: "GET",
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (response.status === 400)
+            throw new Error("слишком короткий запрос. Укажи больше 3 символов");
+          if (response.status === 500) throw new Error("ошибка на сервере");
+          if (response.status === 200) 
+          return response.json();
+        })
         .then((responseData) => {
           arrayUsers = responseData.comments.map((comment) => {
             // const dateInComment = (commentDateApi) => {
@@ -240,8 +247,8 @@
       fetch("https://wedev-api.sky.pro/api/v1/anka-anny/comments", {
         method: "POST",
         body: JSON.stringify({
-          text: textInputElement.value.trim(),
-          name: nameInputElement.value.trim(),
+          text: textInputElement.value.trim().safeCode(),
+          name: nameInputElement.value.trim().safeCode(),
           forceError: true,
         }),
       })
@@ -284,7 +291,7 @@
       listElement.innerHTML = ""
 
       buttonElement.disabled = true;
-      buttonElement.textContent = "Элемент добавлятся...";
+      buttonElement.textContent = "Элемент добавляется...";
       preloader.classList.remove("hide");
 
       // отображение даты и времени
