@@ -92,13 +92,14 @@
         });
     };
 
-    const safeCode = (string) => {
-      return string
+    // const safeCode = (string) => { используем прототипы, чтобы сразу смочь преобразовать строку из trim()
+    String.prototype.safeCode = function () {
+      return this
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;");
-    };
+    }; 
 
     const formatDate = (date) => {
       const getNum = (value) => value < 10 ? "0" + value : value;
@@ -188,7 +189,13 @@
       fetch("https://wedev-api.sky.pro/api/v1/anka-anny/comments", {
         method: "GET",
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (response.status === 400)
+            throw new Error("слишком короткий запрос. Укажи больше 3 символов");
+          if (response.status === 500) throw new Error("ошибка на сервере");
+          if (response.status === 200) 
+            return response.json();
+        })
         .then((responseData) => {
           arrayUsers = responseData.comments.map((comment) => {
             // const dateInComment = (commentDateApi) => {
@@ -230,6 +237,14 @@
           preloader.classList.add('hide');
           secondPreloader.classList.add('hide');
           renderUsers();
+        })
+        .catch((error) => {
+          if (error.message === "Failed to fetch")
+            alert("сломался интернет!");
+          else
+            alert(error.message);
+
+          preloader.classList.add("hide");
         });
     }
 
@@ -240,8 +255,9 @@
       fetch("https://wedev-api.sky.pro/api/v1/anka-anny/comments", {
         method: "POST",
         body: JSON.stringify({
-          text: textInputElement.value.trim(),
-          name: nameInputElement.value.trim() /*forceError: true*/,
+          text: textInputElement.value.trim().safeCode(),
+          name: nameInputElement.value.trim().safeCode(),
+          forceError: true,
         }),
       })
         .then((response) => {
@@ -250,15 +266,25 @@
           if (response.status === 500) throw new Error("ошибка на сервере");
           if (response.status === 201) {
             fetchPromiceArr();
-          };
+          }
         })
         .then(() => {
           nameInputElement.value = "";
           textInputElement.value = "";
         })
         .catch((error) => {
-          if (error.message === "Failed to fetch") alert("сломался интернет!");
-          else alert(error.message);
+          if (error.message === "Failed to fetch")
+            alert("сломался интернет!");
+          else
+            alert(error.message);
+
+          buttonElement.disabled = false;
+          buttonElement.textContent = "Написать"
+
+          preloader.classList.add("hide");
+
+          // return back previous comments
+          renderUsers()
         });
     }
 
@@ -280,7 +306,7 @@
       listElement.innerHTML = ""
 
       buttonElement.disabled = true;
-      buttonElement.textContent = "Элемент добавлятся...";
+      buttonElement.textContent = "Элемент добавляется...";
       preloader.classList.remove("hide");
 
       // отображение даты и времени
