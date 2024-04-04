@@ -100,33 +100,6 @@ window.addEventListener("load", function () {
 function fetchPromiceArr() {
     getComments().then((responseData) => {
         arrayUsers = responseData.comments.map((comment) => {
-            // const dateInComment = (commentDateApi) => {
-            //   let dateApi = new Date(commentDateApi);
-            //   const nowDate =
-            //     dateApi.getDate() < 10
-            //       ? "0" + dateApi.getDate()
-            //       : dateApi.getDate();
-            //   const month =
-            //     dateApi.getMonth() < 10
-            //       ? "0" + (dateApi.getMonth() + 1)
-            //       : dateApi.getMonth() + 1;
-            //   const minutes =
-            //     dateApi.getMinutes() < 10
-            //       ? "0" + dateApi.getMinutes()
-            //       : dateApi.getMinutes();
-            //   let commentDate =
-            //     nowDate +
-            //     "." +
-            //     month +
-            //     "." +
-            //     (dateApi.getFullYear() % 100) +
-            //     " " +
-            //     dateApi.getHours() +
-            //     ":" +
-            //     minutes;
-            //   return commentDate;
-            // };
-
             return {
                 name: comment.author.name,
                 // dateOfComment: dateInComment(comment.date),
@@ -199,40 +172,6 @@ buttonElement.addEventListener("click", () => {
     buttonElement.textContent = "Элемент добавляется...";
     preloader.classList.remove("hide");
 
-    // отображение даты и времени
-    // let currentDate = new Date();
-    // const nowDate =
-    //   currentDate.getDate() < 10
-    //     ? "0" + currentDate.getDate()
-    //     : currentDate.getDate();
-    // const month =
-    //   currentDate.getMonth() < 10
-    //     ? "0" + (currentDate.getMonth() + 1)
-    //     : currentDate.getMonth() + 1;
-    // const minutes =
-    //   currentDate.getMinutes() < 10
-    //     ? "0" + currentDate.getMinutes()
-    //     : currentDate.getMinutes();
-    // let commentDate =
-    //   nowDate +
-    //   "." +
-    //   month +
-    //   "." +
-    //   (currentDate.getFullYear() % 100) +
-    //   " " +
-    //   currentDate.getHours() +
-    //   ":" +
-    //   minutes;
-
     postPromise();
 
-    // arrayUsers.push({
-    //   name: safeCode(nameInputElement.value),
-    //   dateOfComment: commentDate,
-    //   text: safeCode(textInputElement.value).replaceAll('\n', '<br>'),
-    //   likes: 0,
-    //   validButtonLike: false
-    // })
-
-    // renderUsers();
 });
