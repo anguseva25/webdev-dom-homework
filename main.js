@@ -17,6 +17,13 @@ let secondPreloader
 // массив данных с каждым пользователем
 let arrayUsers = [];
 
+const state = {
+    // loadingFirst: true, // => rocket
+    waitingAuthor: true, // => last line with request to authorize + w/o add-form
+    singingAuthor: false, // => authorization form
+    sendingNew: false, // => second rocket + w/o add-form
+}
+
 const likeButton = () => {
     const likeButtonElements = document.querySelectorAll(".like-button");
     for (let likeButtonElement of likeButtonElements)
@@ -31,6 +38,7 @@ const likeButton = () => {
                 user.validButtonLike = true;
             }
 
+            state.singingAuthor = false
             render()
             event.stopPropagation()
         });
@@ -50,28 +58,15 @@ const commentAdd = () => {
         });
 }
 
-const render = (forComments = true) => {
+const render = (userComment = "") => {
     let linesHTML
 
-    if (forComments) {
-        const comments = getLinesUsers()
-        linesHTML = [`<ul id="list-comments" class="comments">`, ...comments, `</ul>`]
-
-        if (token) {
-            linesHTML.push(`<div class="preloaderNew hide" id="preloaderNew">
-                  <span class="loaderNew"></span>
-                </div>`)
-            linesHTML.push(`<div class="add-form">
-                    <input type="text" id="name-input" class="add-form-name" placeholder="Введите ваше имя" value="${name}" disabled>
-                    <textarea id="text-input" class="add-form-text" placeholder="Введите ваш коментарий" rows="4"></textarea>
-                    <div class="add-form-row">
-                        <button id="add-button" class="add-form-button">Написать</button>
-                    </div>
-                </div>`)
-        } else {
-            linesHTML.push(`<p class="ask-login">Чтобы отправлять сообщения, перейдите на <a href="#" id="authorization">авторизацию</a></p>`)
-        }
-    } else {
+    // if (state.loadingFirst) {
+    //     linesHTML.push(`<div class="preloader hide" id="preloader">
+    //         <span class="loader"></span>
+    //     </div>`)
+    // }
+    if (state.singingAuthor) {
         linesHTML = [`<div class="sign-form">
             <input type="text" id="login-input" class="sign-form-login" placeholder="Введите ваш логин" value="">
             <input type="password" id="password-input" class="sign-form-password" placeholder="Введите ваш пароль" value="">
@@ -80,28 +75,54 @@ const render = (forComments = true) => {
             </div>
         </div>`]
         linesHTML.push(`<p class="ask-login">Закрыть форму авторизации, <a href="#" id="authorization">перейти к комментариям</a></p>`)
+    } else {
+        const comments = getLinesUsers()
+        linesHTML = [`<ul id="list-comments" class="comments">`, ...comments, `</ul>`]
+
+        if (state.waitingAuthor) {
+            linesHTML.push(`<p class="ask-login">Чтобы отправлять сообщения, перейдите на <a href="#" id="authorization">авторизацию</a></p>`)
+        } else if (state.sendingNew) {
+            linesHTML.push(`<div class="preloaderNew" id="preloaderNew">
+              <span class="loaderNew"></span>
+            </div>`)
+        } else {
+            linesHTML.push(`<div class="add-form">
+                <input type="text" id="name-input" class="add-form-name" placeholder="Введите ваше имя" value="${name}" disabled>
+                <textarea id="text-input" class="add-form-text" placeholder="Введите ваш коментарий" rows="4">${userComment}</textarea>
+                <div class="add-form-row">
+                    <button id="add-button" class="add-form-button">Написать</button>
+                </div>
+            </div>`)
+        }
     }
 
     mainDiv.innerHTML = linesHTML.join("");
-
+    commentAdd();
     const linkAuthorization = document.getElementById('authorization')
 
-    if (linkAuthorization)
-        linkAuthorization.addEventListener("click", () => render(!forComments))
+    if (linkAuthorization) {
+        linkAuthorization.addEventListener("click", () => {
+            if (state.singingAuthor)
+                state.singingAuthor = false
+            else
+                state.singingAuthor = true
+            render()
+        })
+    }
 
     secondPreloader = document.querySelector('.preloaderNew')
     listElement = document.getElementById("list-comments")
 
-    if (token) {
+    if (state.singingAuthor) {
+        buttonElement = document.getElementById("sign-button")
+
+        buttonAuthorizeClick()
+    }
+    else {
         buttonElement = document.getElementById("add-button")
 
         buttonSendClick()
         likeButton()
-    }
-    else {
-        buttonElement = document.getElementById("sign-button")
-
-        buttonAuthorizeClick()
     }
 
     //
@@ -110,6 +131,8 @@ const render = (forComments = true) => {
     //     buttonElement.textContent = "Написать";
     // }
 }
+
+render();
 
 // render- функция (форма нового комментария)
 function getLinesUsers(){
@@ -163,8 +186,11 @@ function fetchPromiseArr() {
             };
         });
         preloader.classList.add('hide');
-        if (secondPreloader)
-            secondPreloader.classList.add('hide');
+        // if (secondPreloader)
+        //     secondPreloader.classList.add('hide');
+
+        state.singingAuthor = false
+        state.sendingNew = false
         render()
     })
         .catch((error) => {
@@ -184,23 +210,27 @@ function postPromise() {
     postComment({
         text: textInputElement.value,
         nameText: nameInputElement.value
-    }).then(() => {
-        textInputElement.value = "";
-        fetchPromiseArr();
     })
+        .then(() => {
+            //textInputElement.value = "";
+            fetchPromiseArr();
+        })
         .catch((error) => {
             if (error.message === "Failed to fetch")
                 alert("сломался интернет!");
             else
                 alert(error.message);
 
-            buttonElement.disabled = false;
-            buttonElement.textContent = "Написать"
+            if (buttonElement) {
+                buttonElement.disabled = false;
+                buttonElement.textContent = "Написать"
+            }
 
             preloader.classList.add("hide");
 
             // return back previous comments
-            render()
+            state.sendingNew = false
+            render(textInputElement.value)
         });
 }
 
@@ -243,6 +273,8 @@ function buttonAuthorizeClick() {
                 preloader.classList.add("hide")
 
                 if (result === "Ok") {
+                    state.waitingAuthor = false
+                    state.singingAuthor = false
                     render()
                 } else {
                     passwordInputElement.value = ""
@@ -283,11 +315,14 @@ function buttonSendClick() {
             return;
         }
 
-        listElement.innerHTML = ""
-
-        buttonElement.disabled = true;
-        buttonElement.textContent = "Элемент добавляется...";
+        // listElement.innerHTML = ""
+        //
+        // buttonElement.disabled = true;
+        // buttonElement.textContent = "Элемент добавляется...";
         preloader.classList.remove("hide");
+
+        state.sendingNew = true
+        render()
 
         postPromise();
     })

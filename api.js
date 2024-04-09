@@ -44,25 +44,27 @@ export function getAuthorization(login, password) {
 }
 
 
-
-export function postComment( { text, nameText }) {
+export function postComment({text, nameText}) {
     return fetch("https://wedev-api.sky.pro/api/v2/anka-anny/comments", {
         method: "POST",
         headers: {
             Authorization: token,
         },
         body: JSON.stringify({
-          text: text.trim().safeCode(),
-          //name: nameText.trim().safeCode(),
-          //forceError: true,
+            text: text.trim().safeCode(),
+            //name: nameText.trim().safeCode(),
+            //forceError: true,
         }),
-      })
+    })
         .then((response) => {
-          if (response.status === 400)
-            throw new Error("слишком короткий запрос. Укажи больше 3 символов");
-          if (response.status === 500) throw new Error("ошибка на сервере");
-          if (response.status === 201) {
-            return response.json();
-          }
+            if (response.status === 400)
+                throw new Error("слишком короткий запрос. Укажи больше 3 символов");
+            if (response.status === 500) throw new Error("ошибка на сервере");
+            if (response.status === 201) {
+                return response.json();
+            }
         })
+        // .then(() => {
+        //   text.value = "";
+        // })
 }
