@@ -230,8 +230,8 @@ export const DOM = {
                 linesHTML.push(`<p class="ask-login">Чтобы отправлять сообщения, перейдите на <a href="#" id="authorization">авторизацию</a></p>`)
             } else if (this.state.sendingNew) {
                 linesHTML.push(`<div class="preloaderNew" id="preloaderNew">
-              <span class="loaderNew"></span>
-            </div>`)
+                  <span class="loaderNew"></span>
+                </div>`)
             } else {
                 linesHTML.push(`<div class="add-form">
                     <input type="text" id="name-input" class="add-form-name" placeholder="Введите ваше имя" value="${API.name}" disabled>
