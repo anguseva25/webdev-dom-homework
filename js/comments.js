@@ -1,4 +1,5 @@
-import { formatDate } from "./common.js"
+//import { formatDate } from "./common.js"
+import { format } from 'date-fns'
 
 export const comments = {
     arrayUsers: [],
@@ -52,7 +53,8 @@ export const comments = {
             return {
                 name: comment.author.name,
                 // dateOfComment: dateInComment(comment.date),
-                dateOfComment: formatDate(new Date(comment.date)),
+                //dateOfComment: formatDate(new Date(comment.date)),
+                dateOfComment: format(new Date(comment.date), 'yyyy-MM-dd HH.mm.ss'),
                 text: comment.text,
                 likes: comment.likes,
                 validButtonLike: false,
